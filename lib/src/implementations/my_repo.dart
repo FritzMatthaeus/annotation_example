@@ -1,17 +1,13 @@
-// // @CodeGen(runAfter: [CodeGen.addPartOfDirective])
-// import 'package:annotation_example/src/src.dart';
+import 'package:annotation_example/src/src.dart';
 
-// part 'my_repo.g.dart';
+final class MyCachedRepo<T extends CachedModel>
+    extends CachedRepositoryBase<T> {
+  final Api<T> api;
+  MyCachedRepo({required super.storageService, required this.api});
 
-// @CachedRepo(modelName: 'User')
-// class MyRepo extends Repository<User> {
-//   @override
-//   final MyStorageService storageService;
-
-//   MyRepo(this.storageService);
-
-//   @override
-//   void dispose() {
-//     print('dispose');
-//   }
-// }
+  @override
+  Future<void> post(T model) async {
+    await api.save(model);
+    super.post(model);
+  }
+}

@@ -1,11 +1,9 @@
+@CodeGen()
 library;
 
-export 'annotations/cached_annotation.dart';
-export 'annotations/cached_repo_annotation.dart';
-export 'implementations/my_repo.dart';
-export 'implementations/my_storage_service.dart';
-export 'implementations/user.dart';
-export 'interfaces/model.dart';
-export 'interfaces/repository.dart';
-export 'interfaces/storage_service.dart';
+import 'package:super_annotations/super_annotations.dart';
+
+export 'annotations/annotations.dart';
+export 'implementations/implementations.dart';
+export 'interfaces/interfaces.dart';
 export 'main.dart';

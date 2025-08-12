@@ -1,5 +1,4 @@
-import 'package:annotation_example/src/implementations/user.dart';
-import 'package:annotation_example/src/interfaces/storage_service.dart';
+import 'package:annotation_example/src/src.dart';
 
 class MyStorageService implements StorageService<User> {
   const MyStorageService();
@@ -18,7 +17,11 @@ class MyStorageService implements StorageService<User> {
 
   @override
   Future<User?> get(String key) async {
-    return User(name: "Fritz", id: key);
+    return User(
+      name: "Fritz",
+      id: key,
+      info: Info(lastName: 'Matthäus', firstName: 'Fritz'),
+    );
   }
 
   @override
