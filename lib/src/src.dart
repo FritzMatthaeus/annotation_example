@@ -1,3 +1,6 @@
+library;
+
+export 'annotations/cached_annotation.dart';
 export 'annotations/cached_repo_annotation.dart';
 export 'implementations/my_repo.dart';
 export 'implementations/my_storage_service.dart';

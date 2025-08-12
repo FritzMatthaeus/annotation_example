@@ -1,18 +1,17 @@
-@CodeGen(runAfter: [CodeGen.addPartOfDirective])
-import 'package:annotation_example/src/src.dart';
-import 'package:super_annotations/super_annotations.dart';
+// // @CodeGen(runAfter: [CodeGen.addPartOfDirective])
+// import 'package:annotation_example/src/src.dart';
 
-part 'my_repo.g.dart';
+// part 'my_repo.g.dart';
 
-@CachedRepo(modelName: 'User')
-class MyRepo extends Repository<User> {
-  @override
-  final MyStorageService storageService;
+// @CachedRepo(modelName: 'User')
+// class MyRepo extends Repository<User> {
+//   @override
+//   final MyStorageService storageService;
 
-  MyRepo(this.storageService);
+//   MyRepo(this.storageService);
 
-  @override
-  void dispose() {
-    print('dispose');
-  }
-}
+//   @override
+//   void dispose() {
+//     print('dispose');
+//   }
+// }
