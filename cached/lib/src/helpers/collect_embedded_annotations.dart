@@ -11,9 +11,14 @@ import 'package:cached/src/src.dart';
 /// - embeddedSymbol: the inner generic type for `List`/`Set`, or the value type `V` for `Map<K, V>`
 void collectOneToManyRelations() {
   final source = Directory('lib/src');
+
   if (!source.existsSync()) {
     return;
   }
+
+  final filesToSearch = source.listSync().length;
+
+  print('Searching $filesToSearch files in ${source.path}');
 
   // Regex helpers
   final RegExp classDeclRegex = RegExp(r'\bclass\s+(\w+)');

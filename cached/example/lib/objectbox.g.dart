@@ -21,7 +21,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 7915948144408150338),
     name: 'CachedInfo',
-    lastPropertyId: const obx_int.IdUid(5, 5817893209585143603),
+    lastPropertyId: const obx_int.IdUid(6, 3260412628047115465),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -51,11 +51,11 @@ final _entities = <obx_int.ModelEntity>[
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 5817893209585143603),
-        name: 'infosId',
+        id: const obx_int.IdUid(6, 3260412628047115465),
+        name: 'userWithInfosId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(3, 9168910808763867250),
+        indexId: const obx_int.IdUid(7, 3867098259976952161),
         relationTarget: 'CachedUserWithInfos',
       ),
     ],
@@ -130,7 +130,7 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelBacklink(
         name: 'infos',
         srcEntity: 'CachedInfo',
-        srcField: 'infos',
+        srcField: 'userWithInfos',
       ),
     ],
   ),
@@ -174,13 +174,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
     lastEntityId: const obx_int.IdUid(3, 1330626375143892916),
-    lastIndexId: const obx_int.IdUid(6, 7227041436177343365),
-    lastRelationId: const obx_int.IdUid(0, 0),
+    lastIndexId: const obx_int.IdUid(7, 3867098259976952161),
+    lastRelationId: const obx_int.IdUid(1, 5286661904700054753),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
-    retiredIndexUids: const [],
-    retiredPropertyUids: const [],
-    retiredRelationUids: const [],
+    retiredIndexUids: const [9168910808763867250],
+    retiredPropertyUids: const [5817893209585143603],
+    retiredRelationUids: const [5286661904700054753],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
     version: 1,
@@ -189,7 +189,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final bindings = <Type, obx_int.EntityDefinition>{
     CachedInfo: obx_int.EntityDefinition<CachedInfo>(
       model: _entities[0],
-      toOneRelations: (CachedInfo object) => [object.infos],
+      toOneRelations: (CachedInfo object) => [object.userWithInfos],
       toManyRelations: (CachedInfo object) => {},
       getId: (CachedInfo object) => object.databaseId,
       setId: (CachedInfo object, int id) {
@@ -201,12 +201,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
             : fbb.writeString(object.firstName!);
         final lastNameOffset = fbb.writeString(object.lastName);
         final idOffset = fbb.writeString(object.id);
-        fbb.startTable(6);
+        fbb.startTable(7);
         fbb.addOffset(0, firstNameOffset);
         fbb.addOffset(1, lastNameOffset);
         fbb.addOffset(2, idOffset);
         fbb.addInt64(3, object.databaseId);
-        fbb.addInt64(4, object.infos.targetId);
+        fbb.addInt64(5, object.userWithInfos.targetId);
         fbb.finish(fbb.endTable());
         return object.databaseId;
       },
@@ -234,13 +234,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
           id: idParam,
           databaseId: databaseIdParam,
         );
-        object.infos.targetId = const fb.Int64Reader().vTableGet(
+        object.userWithInfos.targetId = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
-          12,
+          14,
           0,
         );
-        object.infos.attach(store);
+        object.userWithInfos.attach(store);
         return object;
       },
     ),
@@ -300,9 +300,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
       toOneRelations: (CachedUserWithInfos object) => [],
       toManyRelations: (CachedUserWithInfos object) => {
         obx_int.RelInfo<CachedInfo>.toOneBacklink(
-          5,
+          6,
           object.databaseId,
-          (CachedInfo srcObject) => srcObject.infos,
+          (CachedInfo srcObject) => srcObject.userWithInfos,
         ): object.infos,
       },
       getId: (CachedUserWithInfos object) => object.databaseId,
@@ -345,9 +345,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.infos,
           store,
           obx_int.RelInfo<CachedInfo>.toOneBacklink(
-            5,
+            6,
             object.databaseId,
-            (CachedInfo srcObject) => srcObject.infos,
+            (CachedInfo srcObject) => srcObject.userWithInfos,
           ),
         );
         return object;
@@ -380,10 +380,11 @@ class CachedInfo_ {
     _entities[0].properties[3],
   );
 
-  /// See [CachedInfo.infos].
-  static final infos = obx.QueryRelationToOne<CachedInfo, CachedUserWithInfos>(
-    _entities[0].properties[4],
-  );
+  /// See [CachedInfo.userWithInfos].
+  static final userWithInfos =
+      obx.QueryRelationToOne<CachedInfo, CachedUserWithInfos>(
+        _entities[0].properties[4],
+      );
 }
 
 /// [CachedUser] entity fields to define ObjectBox queries.
@@ -428,6 +429,6 @@ class CachedUserWithInfos_ {
 
   /// see [CachedUserWithInfos.infos]
   static final infos = obx.QueryBacklinkToMany<CachedInfo, CachedUserWithInfos>(
-    CachedInfo_.infos,
+    CachedInfo_.userWithInfos,
   );
 }

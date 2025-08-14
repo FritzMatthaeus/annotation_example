@@ -1,10 +1,10 @@
 import 'package:cached/cached.dart';
-import 'package:example/src/info.dart';
+import 'package:example/src/models/info.dart';
 
 @Cached()
 class User implements CachedModel {
   @embedded()
-  final Info info;
+  Info? info;
 
   final String? name;
 

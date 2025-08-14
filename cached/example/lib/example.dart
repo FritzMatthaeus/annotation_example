@@ -1,3 +1,5 @@
+import 'package:example/objectbox.g.dart';
+
 import 'src/src.dart';
 import 'src/src.gen.dart';
 

@@ -8,7 +8,7 @@
             "name": "debug build runner",
             "request": "launch",
             "type": "dart",
-            "program": ".dart_tool/build/entrypoint/build.dart",
+            "program": "cached/example/.dart_tool/build/entrypoint/build.dart",
             "args": [
                 "build",
                 "-d"
