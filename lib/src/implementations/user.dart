@@ -11,7 +11,9 @@ class User implements CachedModel {
   @override
   final String id;
 
-  const User({required this.id, required this.info, this.name});
+  int databaseId;
+
+  User({required this.id, required this.info, this.name, this.databaseId = 0});
 
   @override
   String toString() => "User(name: $name, id: $id, info: $info)";
@@ -28,7 +30,14 @@ class UserWithInfos implements CachedModel {
   @override
   final String id;
 
-  const UserWithInfos({required this.id, required this.infos, this.name});
+  int databaseId;
+
+  UserWithInfos({
+    required this.id,
+    required this.infos,
+    this.name,
+    this.databaseId = 0,
+  });
 
   @override
   String toString() => "User(name: $name, id: $id, info: $infos)";

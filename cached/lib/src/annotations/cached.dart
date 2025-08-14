@@ -1,0 +1,375 @@
+import 'package:built_collection/built_collection.dart';
+import 'package:cached/src/src.dart';
+import 'package:super_annotations/super_annotations.dart';
+
+typedef OneToManyRelation = ({
+  String fieldName,
+  String targetName,
+  String? embeddedSymbol,
+});
+
+class Cached extends ClassAnnotation {
+  static const String _cachedPrefix = 'Cached';
+
+  /// Set of [OneToManyRelation] that is generated prior to code
+  /// generation and allows to update classes that are user
+  /// as an embedded iterable inside a parent class
+  static Set<OneToManyRelation> embeddeOneToManyRelations = {};
+
+  const Cached();
+
+  @override
+  void apply(Class target, LibraryBuilder builder) {
+    for (final field in target.fields) {
+      if (_isEmbeddedIterable(field)) {
+        final embeddedSymbol = _getSymbolOfIterableFields(field);
+        final relation = (
+          fieldName: field.name,
+          targetName: target.name,
+          embeddedSymbol: embeddedSymbol,
+        );
+        embeddeOneToManyRelations.add(relation);
+      }
+    }
+
+    Class generatedClass = _buildClass(
+      target,
+      fields: _buildFields(target),
+      methods: ListBuilder([_buildToModelMethod(target)]),
+    );
+
+    // Add the class to the library builder
+    builder
+      ..directives = _buildDirectives()
+      ..body.add(generatedClass);
+  }
+
+  /// will return a BackLink decorator if
+  /// this field is iterable
+  Expression? _buildBacklinkDecorator(Field f) {
+    if (!_isEmbeddedIterable(f)) {
+      return null;
+    }
+    return refer('Backlink(\'${f.name}\')');
+  }
+
+  /// Generate the new class based on the [target]
+  ///
+  /// it will create a constructor and add a factory method
+  Class _buildClass(
+    Class target, {
+    ListBuilder<Field>? fields,
+    ListBuilder<Method>? methods,
+  }) {
+    final hasEmbeddedFields = target.fields.any((e) => _isEmbedded(e));
+    return Class(
+      (c) => c
+        ..name = '$_cachedPrefix${target.name}'
+        ..annotations = ListBuilder([refer('Entity()')])
+        ..mixins = ListBuilder([refer('HashMixin')])
+        ..constructors = ListBuilder([
+          Constructor(
+            (c) => c
+              ..external = false
+              ..optionalParameters.addAll(
+                target.fields.where((f) => !_isEmbedded(f)).map((t) {
+                  return Parameter(
+                    (p) => p
+                      ..name = t.name
+                      ..toThis = true
+                      ..named = true
+                      ..required = _isFieldNonNullable(t),
+                  );
+                }).toList(),
+              ),
+          ),
+          if (hasEmbeddedFields) _factoryWithEmbedded(target),
+          if (!hasEmbeddedFields) _factoryWithoutEmbedded(target),
+        ])
+        ..fields = fields ?? ListBuilder([])
+        ..methods = methods ?? ListBuilder([]),
+    );
+  }
+
+  /// returns all [Directive]s such as imports
+  ListBuilder<Directive> _buildDirectives() {
+    return ListBuilder<Directive>([
+      Directive.import('package:objectbox/objectbox.dart'),
+      Directive.import('package:annotation_example/src/src.dart'),
+    ]);
+  }
+
+  /// build all properties of the generated class
+  ListBuilder<Field> _buildFields(Class target) {
+    final fields = target.fields.map((f) {
+      return Field(
+        (field) => field
+          ..name = f.name
+          ..modifier = FieldModifier.final$
+          ..assignment = _buildRelations(f)
+          ..annotations = ListBuilder([
+            ..._buildIndexDecorators(f),
+            ?_buildBacklinkDecorator(f),
+          ])
+          ..type = !_isEmbedded(f) ? f.type : null,
+      );
+    }).toBuiltList();
+
+    // no let's add the toOne relation in the embedded class to
+    // link it to it's parent.
+
+    final embeddedRelations = embeddeOneToManyRelations.where(
+      (rel) => rel.embeddedSymbol == target.name,
+    );
+
+    final relationFields = embeddedRelations.map(
+      (e) => Field(
+        (f) => f
+          ..name = e.fieldName
+          ..modifier = FieldModifier.final$
+          ..assignment = Code('ToOne<$_cachedPrefix${e.targetName}>()'),
+      ),
+    );
+    return ListBuilder([...fields, ...relationFields]);
+  }
+
+  /// Returns the annotations that have been set
+  /// on the [origin] field as [cachedIndexDecorator]s
+  List<Expression> _buildIndexDecorators(Field origin) {
+    final annotations = <Expression>[];
+    for (final decorator
+        in origin.resolvedAnnotationsOfType<cachedIndexDecorator>()) {
+      annotations.add(decorator.toExpression());
+    }
+    return annotations;
+  }
+
+  /// if the Field [f] is an embedded field,
+  /// it will generate the relations else it will
+  /// return null that results in the same assignement as the
+  /// target class field
+  Code? _buildRelations(Field f) {
+    Code? code;
+
+    if (_isEmbeddedIterable(f)) {
+      final symbol = _getSymbolOfIterableFields(f);
+      code = Code('ToMany<$_cachedPrefix$symbol>()');
+    } else if (_isEmbedded(f)) {
+      code = Code('ToOne<$_cachedPrefix${f.type?.symbol}>()');
+    }
+
+    return code;
+  }
+
+  Method _buildRemoveMethod(Class target) {
+    final parameters = [
+      ...target.fields
+          .where((Field f) => _isEmbedded(f))
+          .map(
+            (Field f) => Parameter(
+              (p) => p
+                ..named = true
+                ..name = '${f.name.toCamelCase()}Box'
+                ..type = _isEmbeddedIterable(f)
+                    ? refer(
+                        'Box<$_cachedPrefix${_getSymbolOfIterableFields(f)}>',
+                      )
+                    : refer('Box<${f.type?.symbol}>'),
+            ),
+          ),
+      Parameter(
+        (p) => p
+          ..name = 'store'
+          ..type = refer('Store'),
+      ),
+    ];
+
+    final removeMethod = Method(
+      (m) => m
+        ..name = 'remove'
+        ..returns = refer('void')
+        ..requiredParameters = ListBuilder(parameters)
+        ..body = Code('''
+
+              // if databaseId is 0 the model
+              // has not been saved to the database yet
+              if (databaseId == 0) {
+                return;
+              }
+
+              // get the box to delete this class
+              final entry = store.box<$_cachedPrefix${target.name}>().get(databaseId);
+
+              // get all embedded fields with toOne relation and delete all the relations
+              ${target.fields.where((f) => _isEmbedded(f) && !_isEmbeddedIterable(f)).map((f) => Code('''
+                
+                store.box<${f.name}>().remove(entry.targetId);
+              '''))}
+
+              // get all embedded fiels toMany relation and delete all the relations
+               ${target.fields.where((f) => _isEmbeddedIterable(f)).map((f) => Code('''
+                
+                List fieldIds = ${f.name}.map((e) => e.databaseId).toList();
+                store.box<${f.name.toCamelCase()}>().removeMany(fieldIds);              
+              '''))}
+
+              // remove the entry
+              store.box<$_cachedPrefix${target.name}>().remove(databaseId);
+          '''),
+    );
+    return removeMethod;
+  }
+
+  /// returns a [Method] that will allow
+  /// to copy a database model into a [CachedModel]
+  Method _buildToModelMethod(Class target) {
+    return Method(
+      (m) => m
+        ..name = 'toModel'
+        ..returns = refer(target.name)
+        ..body = Block.of([
+          refer(target.name)
+              .call([], {
+                for (final f in target.fields.where((f) => !_isEmbedded(f)))
+                  f.name: refer(f.name),
+                for (final f in target.fields.where(
+                  (f) =>
+                      _isEmbedded(f) &&
+                      !_isEmbeddedIterable(f) &&
+                      _isFieldNonNullable(f),
+                ))
+                  f.name: refer('${f.name}.target!.toModel()'),
+                for (final f in target.fields.where(
+                  (f) =>
+                      _isEmbedded(f) &&
+                      !_isEmbeddedIterable(f) &&
+                      !_isFieldNonNullable(f),
+                ))
+                  f.name: refer('${f.name}.target?.toModel()'),
+                for (final f in target.fields.where(
+                  (f) => _isEmbeddedIterable(f) && _isFieldNonNullable(f),
+                ))
+                  f.name: refer(
+                    '${f.name}.map((e) => e.toModel()).to${f.type?.symbol}()',
+                  ),
+              })
+              .returned
+              .statement,
+        ]),
+    );
+  }
+
+  Code _destructureEmbeddedField(Field f) {
+    List<Code> code = [];
+
+    if (_isEmbeddedIterable(f)) {
+      final String? symbol = _getSymbolOfIterableFields(f);
+      return Code('''
+        for (final el in model.${f.name}) {
+          final embeddedElement = $_cachedPrefix$symbol.fromModel(el);
+          cached.${f.name}.add(embeddedElement);
+        }
+      ''');
+    } else if (_isEmbedded(f)) {
+      return Code('''
+
+          final ${f.name} = $_cachedPrefix${f.type?.symbol}.fromModel(model.${f.name});
+          cached.${f.name}.target = ${f.name};
+      ''');
+    }
+
+    return Block.of(code);
+  }
+
+  Constructor _factoryWithEmbedded(Class target) {
+    return Constructor(
+      (c) => c
+        ..external = false
+        ..constant = false
+        ..name = 'fromModel'
+        ..factory = true
+        ..requiredParameters.add(
+          Parameter(
+            (p) => p
+              ..name = 'model'
+              ..type = refer(target.name),
+          ),
+        )
+        ..body = Block.of([
+          // Create the return statement
+          refer('final cached = $_cachedPrefix${target.name}').call([], {
+            for (final f in target.fields.where((f) => !_isEmbedded(f)))
+              f.name: refer('model').property(f.name),
+          }).statement,
+          ...target.fields.map(_destructureEmbeddedField),
+          ...[Code(''), Code('return cached;')],
+        ]),
+    );
+  }
+
+  Constructor _factoryWithoutEmbedded(Class target) {
+    return Constructor(
+      (c) => c
+        ..external = false
+        ..constant = false
+        ..name = 'fromModel'
+        ..factory = true
+        ..requiredParameters.add(
+          Parameter(
+            (p) => p
+              ..name = 'model'
+              ..type = refer(target.name),
+          ),
+        )
+        ..body = Block.of([
+          // Create the return statement
+          refer('$_cachedPrefix${target.name}')
+              .call([], {
+                for (final f in target.fields.where((f) => !_isEmbedded(f)))
+                  f.name: refer('model').property(f.name),
+              })
+              .returned
+              .statement,
+        ]),
+    );
+  }
+
+  String? _getSymbolOfIterableFields(Field f) =>
+      (f.type as TypeReference).types.first.symbol;
+
+  /// Check if the [f] field is annotated with [embedded]
+  bool _isEmbedded(Field f) =>
+      f.resolvedAnnotationsOfType<embedded>().isNotEmpty;
+
+  /// Check if the [f] field is annotated with [embedded]
+  /// and is implementing [Iterable], which means it it is
+  /// some sort of [List], [Map], [Set]
+  bool _isEmbeddedIterable(Field f) =>
+      _isEmbedded(f) && {"List", "Map", "Set"}.contains(f.type?.symbol);
+
+  /// Check if the [f] is non-nullable
+  bool _isFieldNonNullable(Field f) {
+    if (f.type == null) return false;
+
+    // Use the emitter to get the proper string representation
+    final emitter = DartEmitter.scoped(useNullSafetySyntax: true);
+    final typeCode = f.type!.accept(emitter);
+    return !typeCode.toString().endsWith('?');
+  }
+
+  /// Check if the [f] field is annotated with [indexed]
+  bool _isIndexed(Field f) => f.resolvedAnnotationsOfType<indexed>().isNotEmpty;
+
+  /// Check if the [f] field is annotated with [unique]
+  bool _isUnique(Field f) => f.resolvedAnnotationsOfType<unique>().isNotEmpty;
+
+  /// Run this pre-gen hook before code generation.
+  ///
+  /// It will collect information about all @Cached annotated classes
+  /// that have embedded iterable fields. In order to link parent and embedded
+  /// class, we need to edit both. This is an information that we do not have
+  /// during code generation. So we collect this prior and store it in
+  /// [embeddeOneToManyRelations].
+  static void collectEmbeddedOneToManyRelations(LibraryBuilder builder) =>
+      collectOneToManyRelations();
+}

@@ -12,7 +12,14 @@ class Info implements CachedModel {
   @indexed()
   final String lastName;
 
-  const Info({required this.id, required this.lastName, this.firstName});
+  int databaseId;
+
+  Info({
+    required this.id,
+    required this.lastName,
+    this.firstName,
+    this.databaseId = 0,
+  });
 
   @override
   String toString() => 'Info(firstName: $firstName, lastName: $lastName)';

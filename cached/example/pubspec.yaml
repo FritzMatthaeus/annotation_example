@@ -1,0 +1,17 @@
+name: example
+description: Command line test for the cached package
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+
+# Add regular dependencies here.
+dependencies:
+  cached:
+    path: ../../cached
+
+dev_dependencies:
+  build_runner: ^2.5.0
+  lints: ^5.0.0
+  test: ^1.24.0

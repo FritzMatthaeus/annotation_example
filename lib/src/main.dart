@@ -18,61 +18,40 @@ void main() async {
       Info(id: 'info_3', lastName: 'Matthäus', firstName: 'Evi'),
     ],
   );
-  final userWithInfos2 = UserWithInfos(
-    id: '2',
-    name: "Max",
-    infos: [Info(id: 'info_4', lastName: 'Matthäus', firstName: 'Bernd')],
-  );
+
+  store.box<CachedUser>().removeAll();
+  store.box<CachedInfo>().removeAll();
+  store.box<CachedUserWithInfos>().removeAll();
 
   final userBox = store.box<CachedUser>();
   final userWithInfosBox = store.box<CachedUserWithInfos>();
 
-  userBox.put(CachedUser.fromModel(user));
+  final userId = userBox.put(CachedUser.fromModel(user));
   final userWithInfosId = userWithInfosBox.put(
     CachedUserWithInfos.fromModel(userWithInfos),
   );
 
-  final cachedUser = userBox
-      .query(CachedUser_.id.equals(user.id))
-      .build()
-      .find();
-  for (final u in cachedUser) {
-    print(u.toModel());
-  }
+  final cachedUser = userBox.get(userId);
+  final cachedUserWithInfos = userWithInfosBox.get(userWithInfosId);
 
-  final cachedUserWithInfos = userWithInfosBox.get(userWithInfosId)?.toModel();
+  final cachedUserToModel = cachedUser?.toModel();
+  final cachedUserWithInfosToModel = cachedUserWithInfos?.toModel();
 
-  if (cachedUserWithInfos == null) {
-    print("cached user with infos is null");
-    return;
-  }
-  for (final info in cachedUserWithInfos.infos) {
-    print("cached user: $info");
-  }
-
-  userWithInfosBox
-      .query(CachedUserWithInfos_.id.equals(user.id))
-      .build()
-      .remove();
-
-  final userWithInfos2Id = userWithInfosBox.put(
-    CachedUserWithInfos.fromModel(userWithInfos2),
+  final cachedUserToBeDeleted = CachedUser.fromModel(cachedUserToModel!);
+  final cachedUserWithInfosToBeDeleted = CachedUserWithInfos.fromModel(
+    cachedUserWithInfosToModel!,
   );
 
-  final cachedUserWithInfos2 = userWithInfosBox
-      .get(userWithInfos2Id)
-      ?.toModel();
-
-  if (cachedUserWithInfos2 == null) {
-    print("cached user2 with infos is null");
-    return;
-  }
-  for (final info in cachedUserWithInfos2.infos) {
-    print("cached user2: $info");
-  }
-
   final cachedInfos = store.box<CachedInfo>().getAll();
-  for (final cachedInfo in cachedInfos) {
-    print("info: ${cachedInfo.toModel()}");
-  }
+
+  cachedUserToBeDeleted.remove(store);
+  cachedUserWithInfosToBeDeleted.remove(store);
+
+  final userCount = userBox.count();
+  final userWithInfosCount = userWithInfosBox.count();
+  final infoCount = store.box<CachedInfo>().count();
+
+  print(
+    'userCount: $userCount / userWithInfosCount: $userWithInfosCount / infoCount: $infoCount',
+  );
 }
