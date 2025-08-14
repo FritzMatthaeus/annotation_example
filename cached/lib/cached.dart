@@ -5,8 +5,6 @@ library;
 
 export 'package:objectbox/objectbox.dart';
 export 'package:objectbox_generator/objectbox_generator.dart';
+export 'package:super_annotations/super_annotations.dart';
 
-export 'src/annotations/cached.dart';
-export 'src/decorators/decorators.dart';
-export 'src/exceptions/cached_annotation_exception.dart';
-export 'src/model/cached_model.dart';
+export 'src/src.dart' hide StringExtension, collectOneToManyRelations;

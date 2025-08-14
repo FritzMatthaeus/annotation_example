@@ -1,0 +1,119 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:7915948144408150338",
+      "lastPropertyId": "5:5817893209585143603",
+      "name": "CachedInfo",
+      "properties": [
+        {
+          "id": "1:6211125834700981547",
+          "name": "firstName",
+          "type": 9
+        },
+        {
+          "id": "2:4621539707441837012",
+          "name": "lastName",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "1:8334123457005220246"
+        },
+        {
+          "id": "3:5442155010861732733",
+          "name": "id",
+          "type": 9,
+          "flags": 34848,
+          "indexId": "2:930817524760940149"
+        },
+        {
+          "id": "4:6479799828890262985",
+          "name": "databaseId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "5:5817893209585143603",
+          "name": "infosId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "3:9168910808763867250",
+          "relationTarget": "CachedUserWithInfos"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:5164885396962904065",
+      "lastPropertyId": "4:1739263860820992759",
+      "name": "CachedUser",
+      "properties": [
+        {
+          "id": "1:6461593392965866862",
+          "name": "infoId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "4:1641667264395973124",
+          "relationTarget": "CachedInfo"
+        },
+        {
+          "id": "2:2659051727110271068",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8851159607172381864",
+          "name": "id",
+          "type": 9,
+          "flags": 34848,
+          "indexId": "5:7192702384568185307"
+        },
+        {
+          "id": "4:1739263860820992759",
+          "name": "databaseId",
+          "type": 6,
+          "flags": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:1330626375143892916",
+      "lastPropertyId": "3:1864470707007939785",
+      "name": "CachedUserWithInfos",
+      "properties": [
+        {
+          "id": "1:3233802411431378094",
+          "name": "id",
+          "type": 9,
+          "flags": 34848,
+          "indexId": "6:7227041436177343365"
+        },
+        {
+          "id": "2:8578802919297403543",
+          "name": "databaseId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "3:1864470707007939785",
+          "name": "name",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "3:1330626375143892916",
+  "lastIndexId": "6:7227041436177343365",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

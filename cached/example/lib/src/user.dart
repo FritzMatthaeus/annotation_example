@@ -2,13 +2,19 @@ import 'package:cached/cached.dart';
 import 'package:example/src/info.dart';
 
 @Cached()
-class User extends CachedModel {
+class User implements CachedModel {
   @embedded()
   final Info info;
 
   final String? name;
 
-  User({required super.id, required this.info, this.name, super.databaseId});
+  @override
+  String id;
+
+  @override
+  int databaseId;
+
+  User({required this.id, required this.info, this.name, this.databaseId = 0});
 
   @override
   String toString() =>
@@ -16,17 +22,23 @@ class User extends CachedModel {
 }
 
 @Cached()
-class UserWithInfos extends CachedModel {
+class UserWithInfos implements CachedModel {
+  @override
+  String id;
+
+  @override
+  int databaseId;
+
   @embedded()
   final List<Info> infos;
 
   final String? name;
 
   UserWithInfos({
-    required super.id,
+    required this.id,
     required this.infos,
     this.name,
-    super.databaseId,
+    this.databaseId = 0,
   });
 
   @override

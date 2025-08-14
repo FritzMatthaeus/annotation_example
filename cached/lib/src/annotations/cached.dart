@@ -1,6 +1,6 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:cached/cached.dart';
 import 'package:cached/src/src.dart';
-import 'package:super_annotations/super_annotations.dart';
 
 typedef OneToManyRelation = ({
   String fieldName,
@@ -35,7 +35,10 @@ class Cached extends ClassAnnotation {
     Class generatedClass = _buildClass(
       target,
       fields: _buildFields(target),
-      methods: ListBuilder([_buildToModelMethod(target)]),
+      methods: ListBuilder([
+        _buildToModelMethod(target),
+        _buildRemoveMethod(target),
+      ]),
     );
 
     // Add the class to the library builder
@@ -71,8 +74,8 @@ class Cached extends ClassAnnotation {
           Constructor(
             (c) => c
               ..external = false
-              ..optionalParameters.addAll(
-                target.fields.where((f) => !_isEmbedded(f)).map((t) {
+              ..optionalParameters.addAll([
+                ...target.fields.where((f) => !_isEmbedded(f)).map((t) {
                   return Parameter(
                     (p) => p
                       ..name = t.name
@@ -80,8 +83,8 @@ class Cached extends ClassAnnotation {
                       ..named = true
                       ..required = _isFieldNonNullable(t),
                   );
-                }).toList(),
-              ),
+                }),
+              ]),
           ),
           if (hasEmbeddedFields) _factoryWithEmbedded(target),
           if (!hasEmbeddedFields) _factoryWithoutEmbedded(target),
@@ -91,11 +94,15 @@ class Cached extends ClassAnnotation {
     );
   }
 
+  Expression? _buildDatabaseIdDecorator(Field f) {
+    return f.name == CachedModel.databaseIdentifier ? refer('Id()') : null;
+  }
+
   /// returns all [Directive]s such as imports
   ListBuilder<Directive> _buildDirectives() {
     return ListBuilder<Directive>([
-      Directive.import('package:objectbox/objectbox.dart'),
-      Directive.import('package:annotation_example/src/src.dart'),
+      Directive.import('package:cached/cached.dart'),
+      Directive.import('src.dart'),
     ]);
   }
 
@@ -105,11 +112,12 @@ class Cached extends ClassAnnotation {
       return Field(
         (field) => field
           ..name = f.name
-          ..modifier = FieldModifier.final$
           ..assignment = _buildRelations(f)
           ..annotations = ListBuilder([
             ..._buildIndexDecorators(f),
             ?_buildBacklinkDecorator(f),
+            ?_buildDatabaseIdDecorator(f),
+            ?_buildUniqueIdDecorator(f),
           ])
           ..type = !_isEmbedded(f) ? f.type : null,
       );
@@ -257,6 +265,10 @@ class Cached extends ClassAnnotation {
               .statement,
         ]),
     );
+  }
+
+  Expression? _buildUniqueIdDecorator(Field f) {
+    return f.name == CachedModel.idIdentifier ? unique().toExpression() : null;
   }
 
   Code _destructureEmbeddedField(Field f) {
