@@ -2,11 +2,17 @@
 import 'package:annotation_example/src/src.dart';
 
 @Cached()
-class Info {
+class Info implements CachedModel {
+  @override
+  @unique()
+  final String id;
+
   final String? firstName;
+
+  @indexed()
   final String lastName;
 
-  const Info({required this.lastName, this.firstName});
+  const Info({required this.id, required this.lastName, this.firstName});
 
   @override
   String toString() => 'Info(firstName: $firstName, lastName: $lastName)';

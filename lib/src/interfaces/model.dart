@@ -1,5 +1,3 @@
-abstract interface class CachedModel extends Model {}
-
-abstract interface class Model {
+abstract interface class CachedModel extends Object {
   String get id;
 }

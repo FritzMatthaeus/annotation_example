@@ -1,13 +1,13 @@
 import 'package:annotation_example/src/src.dart';
 
 @Cached()
-class User implements Model {
+class User implements CachedModel {
   @embedded()
   final Info info;
 
   final String? name;
 
-  @indexed()
+  @unique()
   @override
   final String id;
 
@@ -15,4 +15,21 @@ class User implements Model {
 
   @override
   String toString() => "User(name: $name, id: $id, info: $info)";
+}
+
+@Cached()
+class UserWithInfos implements CachedModel {
+  @embedded()
+  final List<Info> infos;
+
+  final String? name;
+
+  @unique()
+  @override
+  final String id;
+
+  const UserWithInfos({required this.id, required this.infos, this.name});
+
+  @override
+  String toString() => "User(name: $name, id: $id, info: $infos)";
 }

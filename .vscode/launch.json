@@ -1,0 +1,18 @@
+{
+    // Verwendet IntelliSense zum Ermitteln möglicher Attribute.
+    // Zeigen Sie auf vorhandene Attribute, um die zugehörigen Beschreibungen anzuzeigen.
+    // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debug build runner",
+            "request": "launch",
+            "type": "dart",
+            "program": ".dart_tool/build/entrypoint/build.dart",
+            "args": [
+                "build",
+                "-d"
+            ]
+        }
+    ]
+}

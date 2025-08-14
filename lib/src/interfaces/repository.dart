@@ -34,6 +34,6 @@ base class CachedRepositoryBase<T extends CachedModel>
   Future<void> update(T model) => storageService.save(model.id, model);
 }
 
-abstract interface class Repository<T extends Model> {
+abstract interface class Repository<T extends CachedModel> {
   void dispose();
 }

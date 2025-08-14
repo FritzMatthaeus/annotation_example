@@ -20,7 +20,7 @@ class MyStorageService implements StorageService<User> {
     return User(
       name: "Fritz",
       id: key,
-      info: Info(lastName: 'Matthäus', firstName: 'Fritz'),
+      info: Info(id: 'info_$key', lastName: 'Matthäus', firstName: 'Fritz'),
     );
   }
 
