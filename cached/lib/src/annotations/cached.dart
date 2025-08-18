@@ -38,6 +38,7 @@ class Cached extends ClassAnnotation {
       methods: ListBuilder([
         _buildToModelMethod(target),
         _buildRemoveMethod(target),
+        _buildRemoveAllMethod(target),
       ]),
     );
 
@@ -70,9 +71,11 @@ class Cached extends ClassAnnotation {
     final hasEmbeddedFields = target.fields.any((e) => _isEmbedded(e));
     return Class(
       (c) => c
-        ..name = '$_cachedPrefix${target.name}'
+        ..name = _getCachedClassName(target)
         ..annotations = ListBuilder([refer('Entity()')])
-        ..mixins = ListBuilder([refer('HashMixin')])
+        ..implements = ListBuilder([
+          refer('CachedGeneratedModel<${target.name}>'),
+        ])
         ..constructors = ListBuilder([
           Constructor(
             (c) => c
@@ -84,7 +87,8 @@ class Cached extends ClassAnnotation {
                       ..name = t.name
                       ..toThis = true
                       ..named = true
-                      ..required = _isFieldNonNullable(t),
+                      ..defaultTo = _isDatabaseId(t) ? Code('0') : null
+                      ..required = _isFieldNonNullable(t) && !_isDatabaseId(t),
                   );
                 }),
               ]),
@@ -98,7 +102,7 @@ class Cached extends ClassAnnotation {
   }
 
   Expression? _buildDatabaseIdDecorator(Field f) {
-    return f.name == CachedModel.databaseIdentifier ? refer('Id()') : null;
+    return _isDatabaseId(f) ? refer('Id()') : null;
   }
 
   /// returns all [Directive]s such as imports
@@ -121,6 +125,7 @@ class Cached extends ClassAnnotation {
             ?_buildBacklinkDecorator(f, target.name.toCamelCase()),
             ?_buildDatabaseIdDecorator(f),
             ?_buildUniqueIdDecorator(f),
+            ?_buildOverrideDecorator(f),
           ])
           ..type = !_isEmbedded(f) ? f.type : null,
       );
@@ -155,6 +160,11 @@ class Cached extends ClassAnnotation {
     return annotations;
   }
 
+  /// returns the [override] annotation if the [f] field is annotated with [override]
+  Expression? _buildOverrideDecorator(Field f) {
+    return _isOverride(f) ? refer('override') : null;
+  }
+
   /// if the Field [f] is an embedded field,
   /// it will generate the relations else it will
   /// return null that results in the same assignement as the
@@ -172,6 +182,39 @@ class Cached extends ClassAnnotation {
     return code;
   }
 
+  Method _buildRemoveAllMethod(Class target) {
+    final storeParameter = Parameter(
+      (p) => p
+        ..name = 'store'
+        ..type = refer('Store'),
+    );
+
+    final removeMethod = Method(
+      (m) => m
+        ..name = 'removeAll'
+        ..returns = refer('void')
+        ..annotations = ListBuilder([refer('override')])
+        ..requiredParameters = ListBuilder([storeParameter])
+        ..body = Code('''
+              ${target.fields.where((f) => _isEmbedded(f) && !_isEmbeddedIterable(f)).map((f) => Code('''              
+                
+                // remove all ${f.name}s
+                  store.box<$_cachedPrefix${f.type?.symbol}>().removeAll();
+              ''')).join()}
+
+               ${target.fields.where((f) => _isEmbeddedIterable(f)).map((f) => Code('''
+                
+                // remove ${f.name}s
+                store.box<$_cachedPrefix${_getSymbolOfIterableFields(f)}>().removeAll();              
+              ''')).join()}
+
+              // remove this
+              store.box<${_getCachedClassName(target)}>().removeAll();
+          '''),
+    );
+    return removeMethod;
+  }
+
   Method _buildRemoveMethod(Class target) {
     final storeParameter = Parameter(
       (p) => p
@@ -183,6 +226,7 @@ class Cached extends ClassAnnotation {
       (m) => m
         ..name = 'remove'
         ..returns = refer('void')
+        ..annotations = ListBuilder([refer('override')])
         ..requiredParameters = ListBuilder([storeParameter])
         ..body = Code('''
 
@@ -196,7 +240,7 @@ class Cached extends ClassAnnotation {
 
               ${target.fields.where((f) => !_isEmbeddedIterable(f)).any((f) => _isEmbedded(f)) ? Code('''
                 
-                final entry = store.box<$_cachedPrefix${target.name}>().get(databaseId);
+                final entry = store.box<${_getCachedClassName(target)}>().get(databaseId);
 
                 ''') : Code('')}
 
@@ -217,7 +261,7 @@ class Cached extends ClassAnnotation {
               ''')).join()}
 
               // remove this
-              store.box<$_cachedPrefix${target.name}>().remove(databaseId);
+              store.box<${_getCachedClassName(target)}>().remove(databaseId);
           '''),
     );
     return removeMethod;
@@ -230,6 +274,7 @@ class Cached extends ClassAnnotation {
       (m) => m
         ..name = 'toModel'
         ..returns = refer(target.name)
+        ..annotations = ListBuilder([refer('override')])
         ..body = Block.of([
           refer(target.name)
               .call([], {
@@ -263,7 +308,9 @@ class Cached extends ClassAnnotation {
   }
 
   Expression? _buildUniqueIdDecorator(Field f) {
-    return f.name == CachedModel.idIdentifier ? unique().toExpression() : null;
+    return f.name == CachedGeneratedModel.idIdentifier
+        ? unique().toExpression()
+        : null;
   }
 
   Code _destructureEmbeddedField(Field f) {
@@ -302,7 +349,7 @@ class Cached extends ClassAnnotation {
         )
         ..body = Block.of([
           // Create the return statement
-          refer('final cached = $_cachedPrefix${target.name}').call([], {
+          refer('final cached = ${_getCachedClassName(target)}').call([], {
             for (final f in target.fields.where((f) => !_isEmbedded(f)))
               f.name: refer('model').property(f.name),
           }).statement,
@@ -323,12 +370,15 @@ class Cached extends ClassAnnotation {
           Parameter(
             (p) => p
               ..name = 'model'
+              ..defaultTo = _isDatabaseId(target.fields.first)
+                  ? Code('0')
+                  : null
               ..type = refer(target.name),
           ),
         )
         ..body = Block.of([
           // Create the return statement
-          refer('$_cachedPrefix${target.name}')
+          refer(_getCachedClassName(target))
               .call([], {
                 for (final f in target.fields.where((f) => !_isEmbedded(f)))
                   f.name: refer('model').property(f.name),
@@ -339,8 +389,14 @@ class Cached extends ClassAnnotation {
     );
   }
 
+  String _getCachedClassName(Class target) => '$_cachedPrefix${target.name}';
+
   String? _getSymbolOfIterableFields(Field f) =>
       (f.type as TypeReference).types.first.symbol;
+
+  bool _isDatabaseId(Field f) {
+    return f.name == CachedGeneratedModel.databaseIdentifier;
+  }
 
   /// Check if the [f] field is annotated with [embedded]
   bool _isEmbedded(Field f) =>
@@ -364,6 +420,13 @@ class Cached extends ClassAnnotation {
 
   /// Check if the [f] field is annotated with [indexed]
   bool _isIndexed(Field f) => f.resolvedAnnotationsOfType<indexed>().isNotEmpty;
+
+  /// returns true if the [f] field is annotated with [override]
+  bool _isOverride(Field f) {
+    return f.annotations.any(
+      (e) => (e as ResolvedAnnotation?)?.source == '@override',
+    );
+  }
 
   /// Check if the [f] field is annotated with [unique]
   bool _isUnique(Field f) => f.resolvedAnnotationsOfType<unique>().isNotEmpty;

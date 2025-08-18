@@ -1,3 +1,4 @@
+import 'package:cached/cached.dart';
 import 'package:example/objectbox.g.dart';
 
 import 'src/src.dart';
@@ -55,4 +56,8 @@ void test() {
   print(
     'userCount: $userCount / userWithInfosCount: $userWithInfosCount / infoCount: $infoCount',
   );
+}
+
+void testWithManager() async {
+  final dbService = await DatabaseService.create(getStore: openStore);
 }

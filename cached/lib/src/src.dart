@@ -3,5 +3,7 @@ export 'decorators/decorators.dart';
 export 'exceptions/cached_annotation_exception.dart';
 export 'helpers/collect_embedded_annotations.dart';
 export 'helpers/extensions.dart';
+export 'model/cached_generated_model.dart';
 export 'model/cached_model.dart';
+export 'service/database_service.dart';
 export 'util/hash_mixin.dart';
