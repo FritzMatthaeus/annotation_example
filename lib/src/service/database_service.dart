@@ -8,16 +8,6 @@ class CachedModelManager<
 
   const CachedModelManager(this.store);
 
-  Stream<List<T>> get items => store
-      .box<K>()
-      .query()
-      .build()
-      .stream()
-      .map((e) => e.toModel())
-      .toList()
-      .asStream()
-      .asBroadcastStream();
-
   T? getByDatabaseId(int? id) =>
       id == 0 ? null : store.box<K>().get(id!)?.toModel();
 
@@ -56,26 +46,29 @@ class DatabaseService {
     _managers.clear();
   }
 
-  CachedModelManager<T, K>
-  getManager<T extends CachedModel, K extends CachedGeneratedModel<T>>() {
-    // Use the runtime type of the manager as key
-    final managerType = CachedModelManager<T, K>;
-
+  T getManager<
+    T extends CachedModelManager<CachedModel, CachedGeneratedModel<CachedModel>>
+  >() {
     // Check if manager already exists
-    final existingManager = _managers[managerType];
-    if (existingManager != null) {
-      return existingManager as CachedModelManager<T, K>;
+    final manager = _managers[T] as T?;
+    if (manager == null) {
+      throw CachedModelManagerException(
+        'Manager for type ${T.runtimeType} not found',
+        StackTrace.current,
+      );
     }
-
-    // Create and store new manager
-    final newManager = CachedModelManager<T, K>(store);
-    _managers[managerType] = newManager;
-    return newManager;
+    return manager;
   }
 
   // Optional: Method to check if manager exists
   bool hasManager<T extends CachedModel, K extends CachedGeneratedModel<T>>() {
     return _managers.containsKey(CachedModelManager<T, K>);
+  }
+
+  void registerManagerFactory<
+    T extends CachedModelManager<CachedModel, CachedGeneratedModel<CachedModel>>
+  >(T Function(Store store) factory) {
+    _managers[T] = factory(store);
   }
 
   static Future<DatabaseService> create({

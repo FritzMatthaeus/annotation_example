@@ -180,11 +180,10 @@ class CachedUserWithInfos implements CachedGeneratedModel<UserWithInfos> {
       return;
     }
 
-    List<int> fieldIds = [];
-
     // remove infos
-    fieldIds = infos.map((e) => e.databaseId).toList();
-    store.box<CachedInfo>().removeMany(fieldIds);
+    for (final el in infos) {
+      el.remove(store);
+    }
 
     // remove this
     store.box<CachedUserWithInfos>().remove(databaseId);

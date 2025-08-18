@@ -1,6 +1,7 @@
 export 'annotations/cached.dart';
 export 'decorators/decorators.dart';
 export 'exceptions/cached_annotation_exception.dart';
+export 'exceptions/cached_model_manager_exception.dart';
 export 'helpers/collect_embedded_annotations.dart';
 export 'helpers/extensions.dart';
 export 'model/cached_generated_model.dart';

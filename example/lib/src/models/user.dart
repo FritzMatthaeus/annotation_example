@@ -17,7 +17,7 @@ class User implements CachedModel {
   User({required this.id, required this.info, this.name, this.databaseId = 0});
 
   @override
-  copyWith({String? id, int? databaseId, Info? info, String? name}) {
+  User copyWith({String? id, int? databaseId, Info? info, String? name}) {
     return User(
       id: id ?? this.id,
       databaseId: databaseId ?? this.databaseId,
@@ -52,7 +52,12 @@ class UserWithInfos implements CachedModel {
   });
 
   @override
-  copyWith({String? id, int? databaseId, List<Info>? infos, String? name}) {
+  UserWithInfos copyWith({
+    String? id,
+    int? databaseId,
+    List<Info>? infos,
+    String? name,
+  }) {
     return UserWithInfos(
       id: id ?? this.id,
       databaseId: databaseId ?? this.databaseId,

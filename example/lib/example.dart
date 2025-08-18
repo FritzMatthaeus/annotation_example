@@ -60,4 +60,43 @@ void test() {
 
 void testWithManager() async {
   final dbService = await DatabaseService.create(getStore: openStore);
+  dbService.registerManagerFactory(UserWithInfosManager.new);
+  final userWithInfosManager = dbService.getManager<UserWithInfosManager>();
+
+  final userWithInfos = UserWithInfos(
+    id: '1',
+    name: 'Fritze',
+    infos: [
+      Info(id: 'info_1', lastName: 'Matthäus', firstName: 'Fritz'),
+      Info(id: 'info_2', lastName: 'Matthäus', firstName: 'Max'),
+      Info(id: 'info_3', lastName: 'Matthäus', firstName: 'Evi'),
+    ],
+  );
+
+  final userWithInfosId = userWithInfosManager.put(
+    CachedUserWithInfos.fromModel(userWithInfos),
+  );
+
+  final foundUserWithInfos = userWithInfosManager.getByFirstName('Fritz');
+  final foundUserWithInfosByDatabaseId = userWithInfosManager.getByDatabaseId(
+    userWithInfosId,
+  );
+
+  print(foundUserWithInfos);
+  print(foundUserWithInfosByDatabaseId);
+}
+
+class UserWithInfosManager
+    extends CachedModelManager<UserWithInfos, CachedUserWithInfos> {
+  UserWithInfosManager(super.store);
+
+  UserWithInfos? getByFirstName(String firstName) {
+    final query = store
+        .box<CachedInfo>()
+        .query(CachedInfo_.firstName.equals(firstName))
+        .build();
+    final info = query.findFirst();
+    final user = info?.userWithInfos.target;
+    return user?.toModel();
+  }
 }

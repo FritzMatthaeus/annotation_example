@@ -21,7 +21,12 @@ class Info implements CachedModel {
   });
 
   @override
-  copyWith({String? id, String? firstName, String? lastName, int? databaseId}) {
+  Info copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    int? databaseId,
+  }) {
     return Info(
       id: id ?? this.id,
       lastName: lastName ?? this.lastName,

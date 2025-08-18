@@ -236,8 +236,6 @@ class Cached extends ClassAnnotation {
                 return;
               }
 
-              ${target.fields.any((f) => _isEmbeddedIterable(f)) ? Code('List<int> fieldIds = [];') : Code('')}
-
               ${target.fields.where((f) => !_isEmbeddedIterable(f)).any((f) => _isEmbedded(f)) ? Code('''
                 
                 final entry = store.box<${_getCachedClassName(target)}>().get(databaseId);
@@ -256,8 +254,9 @@ class Cached extends ClassAnnotation {
                ${target.fields.where((f) => _isEmbeddedIterable(f)).map((f) => Code('''
                 
                 // remove ${f.name}
-                fieldIds = ${f.name}.map((e) => e.databaseId).toList();
-                store.box<$_cachedPrefix${_getSymbolOfIterableFields(f)}>().removeMany(fieldIds);              
+                for (final el in ${f.name}) {
+                  el.remove(store);
+                }
               ''')).join()}
 
               // remove this
