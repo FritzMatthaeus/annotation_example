@@ -1,0 +1,74 @@
+---
+description: Apply when asked to use the Github cli or get any information from Github
+globs: 
+alwaysApply: false
+---
+# GitHub CLI Rules
+
+## User
+- if no user is specified, use "@me" as assignee if you think a user is required
+
+## Default Settings
+- Organization: hypeIT-GmbH
+
+## Rules
+
+### Projects
+- assume that the spelling when it comes to upper- or lowercase is not correct
+- try to find a project similar, if you cannot find an exact match
+
+### GitHub Issues
+When handling GitHub issues:
+- Use username: FritzMatthaeus
+- Look for repositories in hypeIT-GmbH organization first
+- If repository not found in hypeIT-GmbH, ask user for correct organization
+- Default assignee: FritzMatthaeus
+- When listing issues across all repositories:
+  - Use `gh search issues` instead of `gh issue list` for cross-repository searches
+  - Always include both open and closed issues unless specifically requested otherwise
+  - Use `--author "@me"` to find all issues created by the current user
+  - Use `--assignee "@me"` to find all issues assigned to the current user
+  - Combine both flags to get a complete list of issues
+  - Available JSON fields for issue listing:
+    - number
+    - title
+    - state
+    - url
+    - assignees
+    - author
+    - body
+    - closed
+    - closedAt
+    - comments
+    - createdAt
+    - id
+    - isPinned
+    - labels
+    - milestone
+    - projectCards
+    - projectItems
+    - reactionGroups
+    - stateReason
+    - updatedAt
+  - Do not use the "repository" field as it's not available in the JSON output
+  - For repository-specific searches, use `gh issue list` with the `-R` flag
+  - When searching for issues, always use the `--json` flag with appropriate fields to get structured output
+
+## Examples
+```bash
+# List all issues (open and closed) created by FritzMatthaeus across all repositories
+gh search issues --author "@me" --json number,title,state,url
+
+# List all issues (open and closed) assigned to FritzMatthaeus across all repositories
+gh search issues --assignee "@me" --json number,title,state,url
+
+# List all issues (open and closed) both created by and assigned to FritzMatthaeus
+gh search issues --author "@me" --assignee "@me" --json number,title,state,url
+
+# List open issues assigned to FritzMatthaeus in a specific repository
+gh issue list -R hypeIT-GmbH/Producely-Go --assignee "@me" --state open
+
+# List open PRs by Markus Rabsch
+gh pr list -R hypeIT-GmbH/Producely-Go --author Markus-hypeIT --state open
+```
+

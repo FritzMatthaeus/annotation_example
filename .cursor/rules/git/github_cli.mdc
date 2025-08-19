@@ -1,0 +1,35 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# GitHub CLI Rules
+
+## Default Settings
+- Username: FritzMatthaeus
+- Organization: hypeIT-GmbH
+
+## Rules
+
+### GitHub Issues
+When handling GitHub issues:
+- Use username: FritzMatthaeus
+- Look for repositories in hypeIT-GmbH organization first
+- If repository not found in hypeIT-GmbH, ask user for correct organization
+- Default assignee: FritzMatthaeus
+
+### GitHub Pull Requests
+When handling GitHub pull requests:
+- Use username: FritzMatthaeus
+- Look for repositories in hypeIT-GmbH organization first
+- If repository not found in hypeIT-GmbH, ask user for correct organization
+- Default author: FritzMatthaeus
+
+## Examples
+```bash
+# List open issues assigned to FritzMatthaeus
+gh issue list -R hypeIT-GmbH/Producely-Go --assignee FritzMatthaeus --state open
+
+# List open PRs by FritzMatthaeus
+gh pr list -R hypeIT-GmbH/Producely-Go --author FritzMatthaeus --state open
+```

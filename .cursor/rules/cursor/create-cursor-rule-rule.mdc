@@ -1,0 +1,36 @@
+---
+description: Respect this rule when asked to write a Cursor rule
+globs: 
+alwaysApply: false
+---
+Follow these rules when creating a Cursor rule:
+
+- Use markdown
+- Make the file easy to read for a human by using headlines, intendations, etc.
+- Do not use fill words
+- Do use bullet points to distinguish single instructions visually.
+- Add a title
+- Add a description with the goal of the rule
+- Add an example if considered to be helpful
+- Add a template if considered to be helpful
+- Add rule aspects that MUST be respected to the Must section
+- Add rule aspects that should be respected to the Optional section
+- Reference files if considered to be helpful
+
+
+Here is an example of the structure of a rule:
+
+# Foo Rule
+
+## Description
+
+## Must
+
+## Optional
+
+## Example
+
+## Template
+
+## References
+

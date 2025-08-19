@@ -1,0 +1,99 @@
+---
+description: Respect this rule when creating a git pull request
+globs:
+alwaysApply: false
+---
+
+# Create Pull Request Rule
+
+## Description
+
+This rule provides a template for creating well-formatted pull requests using the GitHub CLI.
+
+## Command
+
+```bash
+# Create a temporary file with the PR description
+cat << 'EOF' > pr_description.md
+# Changes included in this PR
+
+## Version Update
+- Version bump to 3.3.15+188
+
+## CI Improvements
+- Enhanced test and versioning scripts
+- Added check for code generation changes during versioning
+- Fixed bug causing patrol tests to run twice
+- Fixed exit behavior on failing patrol tests
+
+## Access Control Fixes
+- Fixed person counter update on checkout direction
+- Refactored uniqueIdentifier method to be static on ACCheck
+
+## Key Commits
+- 6492269d: chore(release): 3.3.15+188
+- 01725c72: ci: improve test and versioning scripts
+- 19b9ca35: chore(release): 3.3.15
+- d117a0ea: ci: fix bug that made patrol run the tests twice
+- 5f50b5b0: ci: fix exit on failing patrol tests
+- dfdab675: fix(access_control): person counter update fix
+- 73cd7b45: refactor(access_control): static uniqueIdentifier method
+EOF
+
+# Create the pull request
+gh pr create --base release-production --head main --title "Release [VERSION] to Production" --body-file pr_description.md
+
+# Clean up the temporary file
+rm pr_description.md
+```
+
+## Usage
+
+1. Replace the version number in the description
+2. Update the changes sections based on your PR
+3. Update the commit hashes and messages
+4. Replace the PR number (226) with your PR number
+5. Add, remove, or rename section headers (like "CI Improvements", "Access Control Fixes", etc.) to match the actual changes in your PR. The template sections are just examples.
+6. Run the command
+
+## Template
+
+<!--
+  The following sections ("Version Update", "CI Improvements", "Access Control Fixes", etc.) are just examples.
+  For your pull request, add, remove, or rename sections to reflect the actual changes (e.g., "UI Updates", "API Changes", "Bug Fixes", etc.).
+-->
+
+```markdown
+# Changes included in this PR
+
+## Version Update
+
+- Version bump to [VERSION]
+
+## [Your Section Here]
+
+- [Describe changes]
+
+## [Another Section]
+
+- [Describe changes]
+
+## Key Commits
+
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+- [COMMIT_HASH]: [COMMIT_MESSAGE]
+```
+
+## Notes
+
+- The section headers in the template are examples. Always tailor them to the real changes in your pull request.
+- Make sure you have the GitHub CLI installed and are authenticated
+- The command creates a temporary file and removes it after use
+- The formatting follows GitHub's Markdown specifications
+- Sections can be added or removed based on the PR content
+- Always clean up the temporary `pr_description.md` file after creating the PR

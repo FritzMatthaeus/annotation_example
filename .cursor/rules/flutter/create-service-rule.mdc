@@ -1,0 +1,24 @@
+---
+description: Apply these rules whenever you are asked to write or review code that mentions a service.
+globs:
+alwaysApply: false
+---
+
+# Rules for creating a service class
+
+A service serves to provide access to data across features or packages. A service is always registered and made available through the [service_locator.dart](mdc:packages/core/lib/src/services/service_locator.dart).
+
+## Core principles
+
+- A Service must be defined by an `abstract interface` and extend [Service](mdc:../../../packages/core/lib/src/services/interfaces/service.dart)
+  - if the interface has to be globally available, place it inside the core package in the services folder
+- A Service Implementation must be a singleton.
+- it should implement a reset method to reset it's internal state annotated with "@visibleForTesting".
+- If async initialization is needed
+  - create an initialize method
+  - throw an exception if used without being initialized
+    - the exception should be named after the service and extend [HGException](mdc:../../../packages/core/lib/src/exceptions/exception.dart)
+  - document the initialization in the service comments with an example
+- Always create a Mock implementation of the Service
+- Add a detailed description to the service with an example on initialization and usage.
+- Dispose any resource that should be disposed inside the dispose method. Inform the user if the dispose method must be called as it is disposing ressources. Do not, if there is nothing to dispose inside dispose
