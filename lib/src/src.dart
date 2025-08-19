@@ -4,6 +4,7 @@ export 'exceptions/cached_annotation_exception.dart';
 export 'exceptions/cached_model_manager_exception.dart';
 export 'helpers/collect_embedded_annotations.dart';
 export 'helpers/extensions.dart';
+export 'manager/cached_model_manager.dart';
 export 'model/cached_generated_model.dart';
 export 'model/cached_model.dart';
 export 'service/database_service.dart';

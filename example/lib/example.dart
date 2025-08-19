@@ -44,8 +44,6 @@ void test() {
     cachedUserWithInfosToModel!,
   );
 
-  final cachedInfos = store.box<CachedInfo>().getAll();
-
   cachedUserToBeDeleted.remove(store);
   cachedUserWithInfosToBeDeleted.remove(store);
 
@@ -82,8 +80,14 @@ void testWithManager() async {
     userWithInfosId,
   );
 
+  final foundUserById = userWithInfosManager.getById(
+    userWithInfos.id,
+    CachedUserWithInfos_.id,
+  );
+
   print(foundUserWithInfos);
   print(foundUserWithInfosByDatabaseId);
+  print(foundUserById);
 }
 
 class UserWithInfosManager
